@@ -306,13 +306,62 @@ function handleResize() {
 // Calculate responsive board container bounds
 function calculateBoardSize() {
   const container = document.getElementById('board-container');
+  if (!container) return;
   const maxW = container.clientWidth - 32; 
   
   // Calculate available height dynamically:
   // Viewport height minus header, HUD, tray, buttons, paddings
-  // Allocate roughly 235px for other UI elements on mobile, 340px on desktop
-  const UIHeightBudget = window.innerHeight < 700 ? 235 : 340;
-  const maxH = Math.max(window.innerHeight - UIHeightBudget, 120); // Ensure at least 120px height
+  const cabinet = document.querySelector('.arcade-cabinet');
+  let nonBoardHeight = window.innerHeight < 700 ? 235 : 340;
+
+  if (cabinet) {
+    let computedHeight = 0;
+    const children = Array.from(cabinet.children);
+    children.forEach(child => {
+      if (child.id !== 'board-container' && child.tagName !== 'TEMPLATE') {
+        const style = window.getComputedStyle(child);
+        if (style.display !== 'none' && style.position !== 'absolute' && style.position !== 'fixed') {
+          const rect = child.getBoundingClientRect();
+          const marginTop = parseFloat(style.marginTop) || 0;
+          const marginBottom = parseFloat(style.marginBottom) || 0;
+          computedHeight += rect.height + marginTop + marginBottom;
+        }
+      }
+    });
+
+    const cabinetStyle = window.getComputedStyle(cabinet);
+    const paddingTop = parseFloat(cabinetStyle.paddingTop) || 0;
+    const paddingBottom = parseFloat(cabinetStyle.paddingBottom) || 0;
+    const borderTop = parseFloat(cabinetStyle.borderTopWidth) || 0;
+    const borderBottom = parseFloat(cabinetStyle.borderBottomWidth) || 0;
+    
+    // Gaps between child elements
+    const rowGap = parseFloat(cabinetStyle.rowGap) || parseFloat(cabinetStyle.gap) || 0;
+    const flowChildren = children.filter(child => {
+      if (child.id === 'board-container' || child.tagName === 'TEMPLATE') return false;
+      const style = window.getComputedStyle(child);
+      return style.display !== 'none' && style.position !== 'absolute' && style.position !== 'fixed';
+    });
+    const totalGaps = Math.max(0, flowChildren.length) * rowGap;
+
+    const boardStyle = window.getComputedStyle(container);
+    const boardPaddingTop = parseFloat(boardStyle.paddingTop) || 0;
+    const boardPaddingBottom = parseFloat(boardStyle.paddingBottom) || 0;
+    const boardBorderTop = parseFloat(boardStyle.borderTopWidth) || 0;
+    const boardBorderBottom = parseFloat(boardStyle.borderBottomWidth) || 0;
+
+    computedHeight += paddingTop + paddingBottom + borderTop + borderBottom + totalGaps +
+                      boardPaddingTop + boardPaddingBottom + boardBorderTop + boardBorderBottom;
+
+    if (computedHeight > 100) {
+      nonBoardHeight = computedHeight;
+    }
+  }
+
+  // Safe margin buffer (12px)
+  nonBoardHeight += 12;
+
+  const maxH = Math.max(window.innerHeight - nonBoardHeight, 120);
 
   const imgW = rotatedCanvas.width;
   const imgH = rotatedCanvas.height;
@@ -379,6 +428,7 @@ function scrambleGrid() {
     trayPieces[j] = temp;
   }
 
+  calculateBoardSize();
   renderGameUI();
   startTimer();
 }

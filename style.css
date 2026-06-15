@@ -520,6 +520,9 @@ footer {
     flex-direction: column;
     justify-content: space-between;
   }
+  header, .arcade-hud, .tray-frame, .controls-frame {
+    flex-shrink: 0;
+  }
   header {
     padding-bottom: 4px;
     gap: 2px;
@@ -539,6 +542,8 @@ footer {
   }
   .board-frame {
     padding: 6px;
+    flex-shrink: 1;
+    min-height: 0;
   }
   .tray-frame {
     padding: 6px;
