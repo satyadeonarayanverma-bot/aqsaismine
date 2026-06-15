@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETRO GRID PUZZLE - Arcade Game</title>
+  <meta name="description" content="A retro 8-bit style image puzzle game. Drag and drop pieces from the tray onto the grid to align the image.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Lock Screen Overlay -->
+  <div id="lock-screen">
+    <div class="lock-panel">
+      <div class="lock-header">RESTRICTED TERMINAL</div>
+      <div class="lock-title">ONLY FOR AQSA</div>
+      <div class="lock-input-wrapper">
+        <span class="lock-prompt">&gt;</span>
+        <input type="password" id="lock-input" placeholder="ENTER ACCESS KEY" autocomplete="off">
+      </div>
+      <div id="lock-error" class="lock-error"></div>
+      <button id="lock-submit-btn" class="btn-retro" style="font-size: 0.8rem; padding: 12px 24px;">UNLOCK GRID</button>
+    </div>
+  </div>
+
+  <!-- Retro CRT Beam Effect -->
+  <div class="crt-beam"></div>
+
+  <!-- Cabinet Shell -->
+  <main class="arcade-cabinet">
+    
+    <!-- Title Area -->
+    <header>
+      <div class="arcade-title" style="font-size: 1.40rem;">DO IT BABYYY</div>
+    </header>
+
+    <!-- HUD Status Metrics -->
+    <section class="arcade-hud" aria-label="Status Board">
+      <div class="hud-item">
+        <span class="hud-label">TIME:</span>
+        <span class="hud-value timer" id="timer-display">00:00</span>
+      </div>
+      
+      <!-- Control Buttons -->
+      <div class="hud-controls" style="display: flex; gap: 14px; align-items: center;">
+        
+        <!-- Hint Button -->
+        <button id="hint-btn" class="sound-toggle-btn" title="Hold for Hint" aria-label="Peek Hint">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+
+        <!-- Rotate Button -->
+        <button id="rotate-btn" class="sound-toggle-btn" title="Rotate Image 90°" aria-label="Rotate Image">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+        </button>
+
+        <!-- Audio Toggle -->
+        <button id="toggle-sound" class="sound-toggle-btn" title="Toggle Sound" aria-label="Toggle Sound">
+          <!-- Sound On SVG -->
+          <svg id="sound-on-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          <!-- Sound Off SVG -->
+          <svg id="sound-off-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+      </div>
+    </section>
+
+    <!-- Main Viewport Board Frame -->
+    <section class="board-frame" id="board-container">
+      
+      <!-- The Target Snapping Grid -->
+      <div class="puzzle-board" id="puzzle-board"></div>
+
+      <!-- Image Hint Overlay -->
+      <div class="hint-overlay" id="hint-overlay"></div>
+
+    </section>
+
+    <!-- Tray Container: Puzzle Pieces Tray Below Board -->
+    <section class="tray-frame" aria-label="Pieces Collection">
+      <div class="drag-tray" id="drag-tray"></div>
+    </section>
+
+    <!-- Scramble Action controls -->
+    <section class="controls-frame">
+      <button id="scramble-btn" class="btn-retro">SCRAMBLE GRID</button>
+    </section>
+
+  </main>
+
+
+
+  <!-- Victory Pop-up Overlay (Fullscreen) -->
+  <div class="victory-overlay" id="victory-modal">
+    <div class="victory-title" style="font-size: 2.2rem; color: var(--neon-pink); text-shadow: 0 0 15px rgba(255, 0, 127, 0.6);">YAY!</div>
+    <div class="victory-desc" style="font-size: 1.25rem; color: #fff; margin-top: 15px; line-height: 1.5; font-family: var(--font-pixel); text-shadow: 0 0 10px var(--neon-cyan-glow); max-width: 480px;">YOU EARN A HARDCORE MAKEOUT W ME</div>
+    <div class="victory-desc" style="font-size: 1.1rem; color: var(--neon-cyan); margin-top: 10px; line-height: 1.5; font-family: var(--font-pixel); text-shadow: 0 0 8px var(--neon-cyan-glow); max-width: 480px;">AQSA KE LIPS SO TASTY</div>
+    
+    <div class="victory-stats" style="margin-top: 20px;">
+      <div>TIME ELAPSED: <span id="victory-time">00:00</span></div>
+    </div>
+
+    <button id="modal-replay-btn" class="btn-retro" style="font-size: 0.8rem; padding: 12px 24px; margin-top: 20px;">PLAY AGAIN</button>
+  </div>
+
+  <!-- Preloaded Victory Audio -->
+  <audio id="win-audio" src="tum_tak.mp3" preload="auto" loop></audio>
+
+  <!-- Code Engine -->
+  <script src="script.js"></script>
+</body>
+</html>
