@@ -257,6 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Resize listener
   window.addEventListener('resize', handleResize);
+
+  // Recalculate board dimensions once fonts are fully loaded to avoid layout shifts
+  if (document.fonts) {
+    document.fonts.ready.then(() => {
+      calculateBoardSize();
+      renderGameUI();
+    });
+  }
 });
 
 // Rotate canvas image drawing
@@ -310,7 +318,14 @@ function calculateBoardSize() {
   const maxW = container.clientWidth - 32; 
   
   // Calculate available height dynamically:
-  // Viewport height minus header, HUD, tray, buttons, paddings
+  // Viewport height minus body padding and all other cabinet elements
+  const bodyStyle = window.getComputedStyle(document.body);
+  const bodyPaddingTop = parseFloat(bodyStyle.paddingTop) || 0;
+  const bodyPaddingBottom = parseFloat(bodyStyle.paddingBottom) || 0;
+  const bodyVerticalPadding = bodyPaddingTop + bodyPaddingBottom;
+  
+  const maxCabinetHeight = window.innerHeight - bodyVerticalPadding;
+
   const cabinet = document.querySelector('.arcade-cabinet');
   let nonBoardHeight = window.innerHeight < 700 ? 235 : 340;
 
@@ -361,7 +376,7 @@ function calculateBoardSize() {
   // Safe margin buffer (12px)
   nonBoardHeight += 12;
 
-  const maxH = Math.max(window.innerHeight - nonBoardHeight, 120);
+  const maxH = Math.max(maxCabinetHeight - nonBoardHeight, 120);
 
   const imgW = rotatedCanvas.width;
   const imgH = rotatedCanvas.height;
