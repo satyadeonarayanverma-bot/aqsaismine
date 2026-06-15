@@ -252,6 +252,7 @@ header {
   border: 1px solid var(--bg-dark);
   cursor: grab;
   border-radius: 4px;
+  touch-action: none; /* Prevent touch gestures from scrolling the screen during puzzle dragging */
 }
 
 /* Snapped elements highlight flash */
@@ -314,6 +315,7 @@ header {
   cursor: grab;
   transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
   border-radius: 4px;
+  touch-action: none; /* Prevent scroll gestures when starting a drag on a piece */
 }
 
 .tray-piece:active {
@@ -417,6 +419,7 @@ header {
   top: 0; left: 0; 
   width: 100vw; 
   height: 100vh;
+  height: 100dvh;
   background-color: #000000; /* Fully plain black background */
   border: none;
   box-shadow: none;
@@ -502,6 +505,7 @@ footer {
 @media (max-width: 600px), (max-height: 760px) {
   body {
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     padding: 4px;
     justify-content: center;
@@ -569,6 +573,7 @@ footer {
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background-color: var(--bg-dark);
   background-image: 
     linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),

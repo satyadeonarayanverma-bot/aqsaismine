@@ -513,11 +513,11 @@ function startDragging(e, origIndex, element, source, sourceId, tileW, tileH, da
   const origCol = origIndex % size;
   dragHolder.style.backgroundPosition = `-${origCol * tileW}px -${origRow * tileH}px`;
 
-  // Center exactly on mouse coordinate
-  let pageX = e.pageX;
-  let pageY = e.pageY;
-  dragHolder.style.left = `${pageX - tileW / 2}px`;
-  dragHolder.style.top = `${pageY - tileH / 2}px`;
+  // Center exactly on pointer coordinate relative to viewport (since dragHolder is position: fixed)
+  let clientX = e.clientX;
+  let clientY = e.clientY;
+  dragHolder.style.left = `${clientX - tileW / 2}px`;
+  dragHolder.style.top = `${clientY - tileH / 2}px`;
 
   document.body.appendChild(dragHolder);
 
@@ -528,13 +528,13 @@ function startDragging(e, origIndex, element, source, sourceId, tileW, tileH, da
   }
 
   const onPointerMove = (moveEvent) => {
-    pageX = moveEvent.pageX;
-    pageY = moveEvent.pageY;
-    dragHolder.style.left = `${pageX - tileW / 2}px`;
-    dragHolder.style.top = `${pageY - tileH / 2}px`;
+    clientX = moveEvent.clientX;
+    clientY = moveEvent.clientY;
+    dragHolder.style.left = `${clientX - tileW / 2}px`;
+    dragHolder.style.top = `${clientY - tileH / 2}px`;
 
     // Highlight target slot overlays
-    evaluateHighlight(pageX, pageY, tileW, tileH);
+    evaluateHighlight(clientX, clientY, tileW, tileH);
   };
 
   const onPointerUp = () => {
@@ -543,11 +543,12 @@ function startDragging(e, origIndex, element, source, sourceId, tileW, tileH, da
 
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerCancel);
 
     clearGridHighlights();
 
     // Check release drop target cell index
-    const targetCellIdx = getHoveredCellIndex(pageX, pageY, tileW, tileH);
+    const targetCellIdx = getHoveredCellIndex(clientX, clientY, tileW, tileH);
     
     if (targetCellIdx !== null) {
       // Piece dropped on board cell
@@ -582,7 +583,6 @@ function startDragging(e, origIndex, element, source, sourceId, tileW, tileH, da
       if (source === 'board') {
         // Came from board -> return to tray
         trayPieces.push({ origIndex: origIndex });
-        // It was already set to null in boardState at drag start
       } else {
         // Came from tray -> just leave in tray (do nothing)
       }
@@ -593,20 +593,36 @@ function startDragging(e, origIndex, element, source, sourceId, tileW, tileH, da
     checkVictory();
   };
 
+  const onPointerCancel = () => {
+    element.classList.remove('dragging');
+    dragHolder.remove();
+
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerCancel);
+
+    clearGridHighlights();
+
+    // Return to original position
+    if (source === 'board') {
+      boardState[sourceId] = { origIndex: origIndex };
+    }
+
+    renderGameUI();
+  };
+
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerCancel);
 }
 
-// Find hovered cell index (0 to 8) based on absolute screen coordinates
-function getHoveredCellIndex(x, y, tileW, tileH) {
+// Find hovered cell index (0 to 8) based on viewport coordinates
+function getHoveredCellIndex(clientX, clientY, tileW, tileH) {
   const board = document.getElementById('puzzle-board');
   const rect = board.getBoundingClientRect();
 
-  const boardX = rect.left + window.scrollX;
-  const boardY = rect.top + window.scrollY;
-
-  const relX = x - boardX;
-  const relY = y - boardY;
+  const relX = clientX - rect.left;
+  const relY = clientY - rect.top;
 
   const size = gameState.gridSize;
   const col = Math.floor(relX / tileW);
@@ -619,10 +635,10 @@ function getHoveredCellIndex(x, y, tileW, tileH) {
 }
 
 // Render dynamic overlays during drags
-function evaluateHighlight(x, y, tileW, tileH) {
+function evaluateHighlight(clientX, clientY, tileW, tileH) {
   clearGridHighlights();
 
-  const targetCellIdx = getHoveredCellIndex(x, y, tileW, tileH);
+  const targetCellIdx = getHoveredCellIndex(clientX, clientY, tileW, tileH);
   if (targetCellIdx !== null) {
     const board = document.getElementById('puzzle-board');
     const snapCell = board.querySelector(`[data-grid-index="${targetCellIdx}"]`);
